@@ -1,0 +1,18 @@
+import fiesta.*
+
+describe "Test de Fiesta"{
+	var payaso = new Disfraz(nombre = "IT", fecha = 6/11/18, caracteristicas= [disfrazGracioso])
+	var jorge = new Invitado(disfraz = payaso, edad = 20, personalidad = personaAlegre, estaCargado = true)
+	var mickey = new Disfraz(nombre = "mickey mouse", fecha = 4/11/18, caracteristicas = [disfrazCareta])
+	var juan = new Invitado(disfraz = mickey, edad = 30, personalidad = personaTaciturna, estaCargado = false)
+    var party = new Fiesta(invitados = [jorge,juan], lugar = "casa")
+    
+    test "jorge y juan intercambian sus disfraces"{
+    	party.intercambiarTrajes(jorge,juan)
+    	assert.equals(mickey,jorge.disfraz())
+    	assert.equals(payaso,juan.disfraz())
+    }
+    test "jorge y juan pueden intercambiar sus disfraces"{
+    	assert.that(party.puedenIntercambiarTrajes(jorge,juan))
+    }
+}
