@@ -1,28 +1,32 @@
 class Fiesta{
-	var lugar
-	var fecha = new Date()
+	var lugar 
+	var property fecha = new Date(6,11,18)
 	var invitados = []
 	method esUnBodrio(){
-		invitados.all{invitado => not invitado.estaConforme()}
+		invitados.all{invitado => not invitado.estaConforme(invitado,self)}
 	}
 	method mejorDisfraz(){
-		invitados.max{disfraz => disfraz.puntos()}
+		invitados.max{disfraz => disfraz.puntos(invitados,self)}
 	}
-	method intercambiarTrajes(unAsis,otroAsis){
-		self.estaEnLaFiesta(unAsis)
-		self.estaEnLaFiesta(otroAsis)
-		self.estaDisconforme(unAsis,otroAsis)
+	method intercambiarTrajes(invitado1,invitado2){
+		invitado1.cambiarDisfraz(invitado2.disfraz()) 
+		invitado2.cambiarDisfraz(invitado1.disfraz())
 	}
 	method estaEnLaFiesta(invitado){
 		return invitados.contains(invitado)
 	}
 	method estaDisconforme(unAsis,otroAsis){
-		invitados.any{invitado => not invitado.estaConforme()}
+		invitados.any{invitado => not invitado.estaConforme(invitado,self)}
 	}
-	method puedenCambiarTrajes(unAsis,otroAsis){
+	method puedenIntercambiarTrajes(unAsis,otroAsis){
+		self.estaEnLaFiesta(unAsis)
+		self.estaEnLaFiesta(otroAsis)
+		self.estaDisconforme(unAsis,otroAsis)
 		self.intercambiarTrajes(unAsis,otroAsis)
-		unAsis.estaConforme()
-		return otroAsis.estaConforme()
+		if(unAsis.estaConforme(unAsis,self) and otroAsis.estaConforme(otroAsis,self)){
+			return true
+		}
+			return not self.intercambiarTrajes(unAsis,otroAsis)
 	}
 	method agregarAsistente(asistente){
 		asistente.tieneDisfraz()
@@ -34,26 +38,28 @@ class Fiesta{
 class Inolvidable inherits Fiesta{
 	override method agregarAsistente(asistente){
 		asistente.personaSexie()
-		asistente.estaConforme()
+		asistente.estaConforme(asistente,self)
 		return super(asistente)	
 	}
 }
 
 class Invitado{
-	var disfraz 
+	var property disfraz 
 	var property edad
 	var personalidad
 	var property estaCargado
 	method personaSexie(){
 		return personalidad.esSexie(self)
 	}
-	method estaConforme(){
-		return disfraz.puntos() > 10
+	method estaConforme(invitado,fiesta){
+		return disfraz.puntos(invitado,fiesta) > 10 
 	}
 	method tieneDisfraz(){
 		return not disfraz.isEmpty()
 	}
-	
+	method cambiarDisfraz(nuevo){
+		disfraz = nuevo
+	}
 }
 
 object personaAlegre{
@@ -69,39 +75,36 @@ object personaTaciturna{
 }
 
 object personaCambiante{
-	var hoyMeLevante
+	var hoyMeLevante = personaAlegre 
 	method esSexie(persona){
 		hoyMeLevante.esSexie(persona)
 	}
 }
 
 class Caprichoso inherits Invitado{
-	override method estaConforme(){
-		super()
-		return disfraz.nombre().esPar()   
+	override method estaConforme(invitado,fiesta){
+		return super(invitado,fiesta) and disfraz.nombre().esPar()   
 	}
 }
 
 class Pretencioso inherits Invitado{
-	override method estaConforme(){
-		super()
-		// el disfraz debe tener menos de 30 dias, nose como poner eso
+	override method estaConforme(invitado,fiesta){
+		return super(invitado,fiesta) and disfraz.fecha() < 30
 	}
 }
 
 class Numerologo inherits Invitado{
 	var cifra
-	override method estaConforme(){
-		super()
-		return disfraz.puntos() == cifra
+	override method estaConforme(invitado,fiesta){
+		return super(invitado,fiesta) and disfraz.puntos(self,fiesta) == cifra 
 	}
 }
 class Disfraz{
 	var property nombre
-	var fecha
+	var property fecha = new Date(9,10,18)
 	var caracteristicas = []
-	method puntos(){
-		return caracteristicas.sum{disfraz => disfraz.puntosPorDisfraz(self)}
+	method puntos(invitado,fiesta){
+		return caracteristicas.sum{disfraz => disfraz.puntosPorDisfraz(self,invitado,fiesta)}
 	}
 	method esPar(){
 		return (nombre.size() / 2) == 0
@@ -109,43 +112,43 @@ class Disfraz{
 }
 
 object disfrazGracioso{
-	var nivelGracia 
-	method puntosPorDisfraz(disfraz,invitado){
-		return nivelGracia * disfraz.personaQueLoLleva(invitado)
+	var nivelGracia = 100
+	method puntosPorDisfraz(disfraz,invitado,fiesta){
+		return nivelGracia * self.personaQueLoLleva(invitado)
 	}
 	method personaQueLoLleva(invitado) {
 		if(invitado.edad() <= 50){
-			 1
+			return 1
 		}
 			return 3
 	}
 }
 
 object disfrazTobara{
-	var property diaCompra 
-	method puntosPorDisfraz(disfraz,invitado){ // no se como poner si fue comprado 2 o mas dias antes de la fiesta
+	var property diaCompra = new Date(4,12,18) 
+	method puntosPorDisfraz(disfraz,invitado,fiesta){ 
+		if(fiesta.fecha() - self.diaCompra() < 2){
+			return 3
+		}
+			return 5
 	}
 }
 
 object disfrazCareta{
-	var personaje
-	method puntosPorDisfraz(disfraz,invitado){
+	method puntosPorDisfraz(disfraz,invitado,fiesta){
 		return personaje.valor()
 	}
 }
 
 object personaje{
-	var property valor
+	var property valor = 20 
 }
 
 object disfrazSexie{
-	method puntosPorDisfraz(disfraz,invitado){
+	method puntosPorDisfraz(disfraz,invitado,fiesta){
 		if(!invitado.personaSexie()){
 			2
 		}
 			return 15
 	}
 }
-
-
-
